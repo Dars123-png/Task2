@@ -1,0 +1,55 @@
+Step 2: Port & Service Scanning (NMap Scanning)
+
+When you are testing a network or a system (like Metasploitable2 VM), an attacker usually wants to know what is running on the machine. Each scan in Step 2 helps us get a different piece of that picture.This step is critical because it shows what an attacker could potentially target, and it’s the foundation for vulnerability scanning (Step 3).
+
+1️⃣ TCP SYN Scan (Stealth Scan -sS)
+
+Purpose: Identify which TCP ports are open without fully connecting.
+Why: Open ports mean the service is active and can be targeted.
+Example: Ports 21 (FTP), 22 (SSH), 80 (HTTP).
+Real-world analogy: It’s like knocking on doors lightly to see which ones are unlocked.
+Command: nmap -sS 192.168.1.3 -oN tcp_scan.txt
+-sS → SYN scan (stealth).
+192.168.1.3 → Target VM IP.
+-oN tcp_scan.txt → Output saved in normal text format
+Why -sS instead of -sT here?
+Stealth
+-sS doesn’t complete the TCP handshake → harder for the victim (Metasploitable2 in your case) to log the scan.
+If you used -sT, it would fully connect to each port → the victim would log “connection attempt” for every port (1000 times).
+Speed
+-sS is faster since it only sends SYN → gets SYN-ACK or RST → done.
+-sT wastes time doing full connections and then closing them.
+Privilege level
+In Kali, you usually run Nmap as root (or with sudo), so you can use -sS.
+If you were a normal user without root, you’d be forced to use -sT.
+So why are you using -sS in reports?
+Because this is industry standard. Almost every pentest report shows SYN scans for TCP ports.
+If you want to be sneaky and efficient (like a hacker) → use -sS.
+If you’re just testing openly without worrying about being noticed → -sT works.
+2️⃣ UDP Scan (-sU)
+
+Purpose: Find services running over UDP (like DNS or SNMP).TCP only covers one protocol; UDP is another protocol used by services like DNS, SNMP.
+UDP services are often overlooked but can be vulnerable.sudo → required because scanning UDP often needs root privileges.
+Why: Many attacks target UDP services because they are less monitored than TCP.
+Real-world analogy: Checking mailboxes—less obvious, often overlooked, but can leak info.
+Command: sudo nmap -sU 192.168.1.3-oN udp_scan.txt
+3️⃣ Service Version Detection (-sV)
+
+Purpose: Identify the software and its version running on open ports.
+Why: Knowing the exact version is essential for vulnerability analysis (Step 3).
+Example: vsFTPd 2.3.4 is known to have vulnerabilities, OpenSSH version helps plan attacks.
+Real-world analogy: Not just checking the door is open, but seeing which lock and brand it uses.
+Command: nmap -sV 192.168.1.3 -oN version_scan.txt
+4️⃣ OS Detection (-O)
+
+Purpose: Guess the operating system (Linux, Windows, version).
+Why: Some vulnerabilities are OS-specific. Knowing OS narrows down the attack surface.
+Useful for planning further penetration tests or simulations.
+Real-world analogy: Knowing the building structure before attempting to enter (wood, concrete, etc.).
+Command: sudo nmap -O 192.168.1.3 -oN os_scan.txt
+5️⃣ Aggressive Scan (-A)
+
+Purpose: Combine version detection + OS detection + scripts + traceroute in one.
+Why: Saves time, gives a complete overview of the target system for documentation.
+Real-world analogy: Surveying the whole building from outside: doors, windows, alarms, and layout.
+Command: sudo nmap -A 192.168.1.3 -oN full_scan.txt
